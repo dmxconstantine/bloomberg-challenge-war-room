@@ -1,4 +1,4 @@
-"""24h 财经新闻雷达：抓取 Google News 多主题 RSS，去重排序后产出新闻列表。"""
+"""24h 财经新闻雷达：抓取 Google News 多主题 RSS（中英双语源），去重排序后产出新闻列表。"""
 import datetime
 import email.utils
 import re
@@ -7,24 +7,29 @@ import xml.etree.ElementTree as ET
 import requests
 
 TOPICS = [
-    ("美联储 利率 降息", "宏观利率"),
-    ("AI 人工智能 芯片 英伟达", "AI科技"),
-    ("中美 关税 贸易", "贸易政策"),
-    ("原油 黄金 大宗商品", "大宗商品"),
-    ("A股 港股 今日 行情", "中国市场"),
-    ("stock market earnings Fed", "美股动态"),
+    ("美联储 利率 降息", "Federal Reserve interest rate", "宏观利率"),
+    ("AI 人工智能 芯片 英伟达", "AI chips Nvidia", "AI科技"),
+    ("中美 关税 贸易", "US China tariffs trade", "贸易政策"),
+    ("原油 黄金 大宗商品", "oil gold commodities prices", "大宗商品"),
+    ("A股 港股 今日 行情", "China stock market", "中国市场"),
+    ("美股 财报 行情", "US stock market earnings Fed", "美股动态"),
 ]
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
 PER_TOPIC = 8
 MAX_ITEMS = 40
 
+FEEDS = {
+    "zh": "&hl=zh-CN&gl=CN&ceid=CN:zh-Hans",
+    "en": "&hl=en-US&gl=US&ceid=US:en",
+}
 
-def fetch_topic(query, topic):
+
+def fetch_topic(query, topic, lang):
     url = (
         "https://news.google.com/rss/search?q="
         + requests.utils.quote(query)
-        + "&hl=zh-CN&gl=CN&ceid=CN:zh-Hans"
+        + FEEDS[lang]
     )
     items = []
     try:
@@ -55,6 +60,7 @@ def fetch_topic(query, topic):
                     "publishedAt": iso,
                     "link": link,
                     "topic": topic,
+                    "lang": lang,
                 }
             )
             if len(items) >= PER_TOPIC:
@@ -66,8 +72,9 @@ def fetch_topic(query, topic):
 
 def run(ctx):
     all_items = []
-    for query, topic in TOPICS:
-        all_items.extend(fetch_topic(query, topic))
+    for zh_q, en_q, topic in TOPICS:
+        all_items.extend(fetch_topic(zh_q, topic, "zh"))
+        all_items.extend(fetch_topic(en_q, topic, "en"))
 
     # 按标题去重（保留最新一条）
     best = {}
@@ -82,7 +89,7 @@ def run(ctx):
         "artifact": {
             "fetchedAt": fetched_at,
             "source": "Google News RSS",
-            "topics": [t[1] for t in TOPICS],
+            "topics": [t[2] for t in TOPICS],
             "items": items,
         }
     }
