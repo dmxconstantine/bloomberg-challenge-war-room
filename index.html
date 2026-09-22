@@ -114,6 +114,8 @@
   .brief ul { margin-left: 16px; }
   .brief li { font-size: 12px; margin: 3px 0; color: var(--tx); }
   .brief li span { display: block; color: var(--tx3); font-size: 11px; }
+  .giscus { margin-top: 8px; min-height: 220px; }
+  .giscus-frame { width: 100%; border: none; }
   @media (max-width: 900px) { .c4,.c8,.c5,.c7 { grid-column: span 12; } .evhead,.evrow { grid-template-columns: 60px 1fr 62px; } .evhead span:nth-child(4), .evhead span:nth-child(5), .evrow .hideS { display: none; } }
 </style>
 </head>
@@ -173,6 +175,12 @@
       <div id="catTable"></div>
       <div class="note" id="catCount"></div>
     </div>
+
+    <div class="card c12">
+      <h2><span class="no">06</span><span id="tChat"></span><span class="meta" id="mChat"></span></h2>
+      <div class="note" id="chatNote" style="margin:0 0 8px"></div>
+      <div id="giscusBox" class="giscus"></div>
+    </div>
   </div>
 
   <div class="foot">
@@ -216,7 +224,9 @@ var I = {
     eregions: { US: "US 美国", CN: "CN 中国", EU: "EU 欧洲", JP: "JP 亚太", GL: "GL 全球" },
     etags: { CONF: "CONF 已确认", EST: "EST 预估", TBC: "TBC 待确认" },
     weeks: { All: "All 全部", W1: "W1 · 11–18 Oct", W2: "W2 · 19–25 Oct", W3: "W3 · 26 Oct–1 Nov", W4: "W4 · 2–8 Nov", W5: "W5 · 9–14 Nov" },
-    colDate: "Date", colEvent: "Catalyst event", colType: "Type", colRegion: "Region", colTier: "Tier"
+    colDate: "Date", colEvent: "Catalyst event", colType: "Type", colRegion: "Region", colTier: "Tier",
+    chat: "Team chat", chatMeta: "GitHub Discussions",
+    chatNote: "Teammates sign in with a GitHub account to post · CN/EN both welcome · double-click a reaction to vote"
   },
   zh: {
     sub: "全球视野 · 准备期 9.21–10.11 · 比赛期 10.12–11.13",
@@ -245,7 +255,9 @@ var I = {
     eregions: { US: "美国", CN: "中国", EU: "欧洲", JP: "日本/亚太", GL: "全球" },
     etags: { CONF: "已确认", EST: "预估", TBC: "待确认" },
     weeks: { All: "全部", W1: "W1 · 10.11–18", W2: "W2 · 10.19–25", W3: "W3 · 10.26–11.1", W4: "W4 · 11.2–8", W5: "W5 · 11.9–14" },
-    colDate: "日期", colEvent: "催化事件", colType: "类型", colRegion: "地区", colTier: "层级"
+    colDate: "日期", colEvent: "催化事件", colType: "类型", colRegion: "地区", colTier: "层级",
+    chat: "战队聊天室", chatMeta: "GitHub Discussions",
+    chatNote: "队友用 GitHub 账号登录即可发言 · 中英皆可 · 点击表情可投票"
   }
 };
 function L() { return I[LANG]; }
@@ -502,6 +514,36 @@ function renderCatalysts() {
   document.getElementById("catCount").textContent = evs.length + ' / 50 ' + l.shown;
 }
 
+/* ---------- chat ---------- */
+function ensureGiscus() {
+  if (document.getElementById("giscus-app")) return;
+  var box = document.getElementById("giscusBox");
+  if (!box) return;
+  var s = document.createElement("script");
+  s.id = "giscus-app";
+  s.src = "https://giscus.app/client.js";
+  s.setAttribute("data-repo", "dmxconstantine/bloomberg-challenge-war-room");
+  s.setAttribute("data-repo-id", "R_kgDOUjZOnA");
+  s.setAttribute("data-category", "War Room Chat");
+  s.setAttribute("data-category-id", "DIC_kwDOUjZOnM4DGLM3");
+  s.setAttribute("data-mapping", "pathname");
+  s.setAttribute("data-strict", "0");
+  s.setAttribute("data-reactions-enabled", "1");
+  s.setAttribute("data-emit-metadata", "0");
+  s.setAttribute("data-input-position", "top");
+  s.setAttribute("data-theme", "dark");
+  s.setAttribute("data-lang", LANG === "en" ? "en" : "zh-CN");
+  s.crossOrigin = "anonymous";
+  s.async = true;
+  box.appendChild(s);
+}
+function setGiscusLang() {
+  var f = document.querySelector("iframe.giscus-frame");
+  if (f && f.contentWindow) {
+    f.contentWindow.postMessage({ giscus: { setConfig: { lang: LANG === "en" ? "en" : "zh-CN" } } }, "https://giscus.app");
+  }
+}
+
 function renderAll() {
   var l = L();
   renderCatalysts();
@@ -509,12 +551,16 @@ function renderAll() {
   document.getElementById("tClock").textContent = l.clock;
   document.getElementById("footSrc").textContent = l.src;
   document.getElementById("footDisc").textContent = l.disc;
+  document.getElementById("tChat").textContent = l.chat;
+  document.getElementById("mChat").textContent = l.chatMeta;
+  document.getElementById("chatNote").textContent = l.chatNote;
   document.getElementById("bZh").className = LANG === "zh" ? "on" : "";
   document.getElementById("bEn").className = LANG === "en" ? "on" : "";
   renderClock(); renderMarket(); renderNews(); renderFocus();
+  ensureGiscus();
 }
-document.getElementById("bZh").onclick = function () { LANG = "zh"; renderAll(); };
-document.getElementById("bEn").onclick = function () { LANG = "en"; renderAll(); };
+document.getElementById("bZh").onclick = function () { LANG = "zh"; renderAll(); setGiscusLang(); };
+document.getElementById("bEn").onclick = function () { LANG = "en"; renderAll(); setGiscusLang(); };
 
 renderAll();
 fetchData();
