@@ -406,7 +406,9 @@ function renderNews() {
   Array.prototype.forEach.call(document.getElementById("nChips").children, function (b) {
     b.onclick = function () { nTopic = b.getAttribute("data-r"); renderNews(); };
   });
-  var shown = nTopic === "All" ? items : items.filter(function (i) { return i.topic === nTopic; });
+  var shown0 = nTopic === "All" ? items : items.filter(function (i) { return i.topic === nTopic; });
+  var shown = shown0.filter(function (i) { return i.lang === LANG; });
+  if (!shown.length) shown = shown0;
   document.getElementById("nList").innerHTML = shown.slice(0, 30).map(function (i) {
     var a = ago(i.pub || i.publishedAt);
     var fr = /分钟前|m ago/.test(a) && parseInt(a, 10) <= 30 ? "fresh" : "";
