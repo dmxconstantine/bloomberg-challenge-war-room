@@ -273,7 +273,7 @@ var I = {
     briefLabel: "每周叙事 · 本周股市关注 · EQUITY FOCUS",
     fSearchPh: "搜索事件…（CPI、FOMC、台积电）", reset: "重置", shown: "个事件",
     tiers: { T1: "T1 · 撼动指数", T2: "T2 · 板块/市场", T3: "T3 · 背景" },
-    types: { MACRO: "Macro 宏观", EARN: "财报", GEO: "地缘/政策", CTX: "背景" },
+    types: { MACRO: "宏观", EARN: "财报", GEO: "地缘/政策", CTX: "背景" },
     eregions: { US: "美国", CN: "中国", EU: "欧洲", JP: "日本/亚太", GL: "全球" },
     etags: { CONF: "已确认", EST: "预估", TBC: "待确认" },
     weeks: { All: "全部", W1: "W1 · 10.11–18", W2: "W2 · 10.19–25", W3: "W3 · 10.26–11.1", W4: "W4 · 11.2–8", W5: "W5 · 11.9–14" },
@@ -603,7 +603,7 @@ function renderAll() {
     var bar = document.getElementById("staleBar");
     var src = (LIVE && LIVE.news) ? LIVE.news : (SNAP.news || null);
     var at = src && src.fetchedAt ? new Date(src.fetchedAt).getTime() : 0;
-    var ageMin = at ? Math.floor((Date.now() - at) / 60000) : 0;
+    var ageMin = at ? Math.floor((Date.now() - at) / 60000) : 999;
     if (!LIVE) { bar.style.display = "block"; bar.textContent = l.staleSnap; }
     else if (ageMin > 45) { bar.style.display = "block"; bar.textContent = l.staleWarn.replace("{m}", ageMin); }
     else bar.style.display = "none";
