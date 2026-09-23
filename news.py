@@ -13,11 +13,17 @@ TOPICS = [
     ("原油 黄金 大宗商品", "oil gold commodities prices", "大宗商品"),
     ("A股 港股 今日 行情", "China stock market", "中国市场"),
     ("美股 财报 行情", "US stock market earnings Fed", "美股动态"),
+    ("欧央行 欧元区 经济 利率", "ECB Europe economy rates", "欧洲经济"),
+    ("美股 科技股 七巨头 苹果 微软", "tech stocks Magnificent Seven Apple Microsoft", "美股科技"),
+    ("中东 地缘政治 冲突 伊朗 以色列", "Middle East geopolitics Iran Israel oil", "地缘局势"),
+    ("比特币 加密货币 数字货币", "Bitcoin crypto Ethereum market", "加密资产"),
+    ("财报 业绩 指引 盈利", "earnings results guidance profit", "财报季"),
+    ("日本央行 加息 日元 汇率", "Bank of Japan yen rate hike", "日本市场"),
 ]
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
-PER_TOPIC = 8
-MAX_ITEMS = 40
+PER_TOPIC = 10
+MAX_ITEMS = 70
 
 FEEDS = {
     "zh": "&hl=zh-CN&gl=CN&ceid=CN:zh-Hans",
