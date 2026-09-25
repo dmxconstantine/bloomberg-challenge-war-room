@@ -65,6 +65,27 @@
   .crow .wt { text-align: right; font-variant-numeric: tabular-nums; }
   .crow .pr { text-align: right; font-variant-numeric: tabular-nums; color: var(--tx2); }
   .crow.copied { background: rgba(52, 201, 142, 0.15); }
+  .crow.hot { background: rgba(240, 164, 74, 0.07); }
+  .crow.sel { border: 1px solid var(--tx); }
+  .crow.hot:hover { background: rgba(240, 164, 74, 0.14); }
+  .crow .star { color: #f0a44a; margin-right: 4px; }
+  .crow .sig2 { font-size: 10px; color: #f0a44a; border: 1px solid rgba(240,164,74,.4); border-radius: 99px; padding: 0 6px; margin-left: 6px; white-space: nowrap; }
+  .cdetail { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 9px; background: #0a2242; padding: 10px 12px; margin: 2px 0 8px; }
+  .cdetail .dh { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .cdetail .dh b { font-size: 14px; }
+  .cdetail .dh .tk2 { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--tx2); font-size: 12px; }
+  .cdetail .dh .cp { margin-left: auto; }
+  .cdetail .cp button { border: 1px solid var(--line); background: transparent; color: var(--tx2); font-size: 11px; border-radius: 99px; padding: 2px 10px; cursor: pointer; }
+  .cdetail .cp button:hover { color: var(--tx); border-color: var(--tx); }
+  .cdetail .meta2 { font-size: 11px; color: var(--tx3); display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .cdetail .why { font-size: 12px; color: var(--tx2); margin: 4px 0 8px; }
+  .cdetail .sigbadge { display: inline-block; font-size: 11px; color: #f0a44a; border: 1px solid rgba(240,164,74,.45); border-radius: 99px; padding: 1px 8px; margin-right: 6px; }
+  .cdetail .nlabel { font-size: 11px; color: var(--tx3); letter-spacing: .05em; margin: 6px 0 4px; }
+  .cdetail .cn { display: block; padding: 5px 0; border-top: 1px solid rgba(23,49,84,.6); text-decoration: none; }
+  .cdetail .cn .t { font-size: 12px; color: var(--tx1); }
+  .cdetail .cn .m { font-size: 10px; color: var(--tx3); margin-top: 2px; }
+  .cdetail .cn:hover .t { text-decoration: underline; }
+  .cdetail .nonews { font-size: 12px; color: var(--tx3); }
   .tile .nm { font-size: 11px; color: var(--tx2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tile .pv { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
   .tile .px { font-size: 14px; font-weight: 600; }
@@ -263,8 +284,9 @@ var I = {
     comp: "Tradable companies · WLS universe", compMeta: "as of Sep 21", compPh: "Search ticker or company…",
     compGroups: { all: "All", us: "US", cn: "China A", hk: "HK", jp: "Japan", tw: "Taiwan", kr: "Korea", in: "India", eu: "Europe", ap: "Asia-Pac", am: "Americas", me: "Middle East", za: "S. Africa", ot: "Other" },
     compTh: { t: "Ticker", n: "Company", x: "Exchange", w: "Weight", p: "Ref price" },
-    compNote: "companies shown · click a row to copy the ticker · weights are WLS index weights as of Sep 21, reference prices are closing prices that day",
+    compNote: "companies shown · click a row for profile & linked news · weights are WLS index weights as of Sep 21, reference prices are closing prices that day",
     compCopied: "Copied",
+    compCopy: "Copy ticker", compFocus: "In focus pool", compNews: "Linked news · tap to open", compNoNews: "No related news in the current 24h radar — try the company keyword in the news panel above.",
     src: "Quotes & news refresh server-side every 15 min via GitHub Actions (Yahoo Finance delayed · Google News RSS)",
     disc: "For competition research only — not investment advice.",
     sess: { cn: "A-shares", hk: "Hong Kong", us: "US" },
@@ -301,8 +323,9 @@ var I = {
     comp: "可交易公司库 · WLS 名单", compMeta: "截至 9.21", compPh: "搜索代码或公司…",
     compGroups: { all: "全部", us: "美股", cn: "A股", hk: "港股", jp: "日本", tw: "台湾", kr: "韩国", in: "印度", eu: "欧洲", ap: "亚太", am: "美洲", me: "中东", za: "南非", ot: "其他" },
     compTh: { t: "代码", n: "公司", x: "交易所", w: "权重", p: "参考价" },
-    compNote: "家公司在列 · 点击行复制代码 · 权重为 WLS 指数权重（截至 9.21），参考价为当日收盘价",
+    compNote: "家公司在列 · 点击行查看档案与联动新闻 · 权重为 WLS 指数权重（截至 9.21），参考价为当日收盘价",
     compCopied: "已复制",
+    compCopy: "复制代码", compFocus: "在重点关注池", compNews: "联动新闻 · 点击打开", compNoNews: "24 小时新闻雷达中暂无相关新闻，可用公司关键词在上方新闻面板搜索。",
     src: "行情与新闻由 GitHub Actions 每 15 分钟服务端自动更新（Yahoo Finance 延迟行情 · Google News RSS）",
     disc: "仅供竞赛研究，不构成投资建议。",
     sess: { cn: "A股", hk: "港股", us: "美股" },
@@ -547,33 +570,67 @@ function renderFocus() {
 }
 
 /* ---------- tradable companies (WLS universe) ---------- */
-var cGroup = "all", cQuery = "", cCounts = null, cCopiedTimer = null;
+var cGroup = "all", cQuery = "", cCounts = null, cCopiedTimer = null, cSel = null;
 function compInit() {
   if (cCounts || !window.WLS) return;
   cCounts = {};
   window.WLS.rows.forEach(function (r) { cCounts[r[4]] = (cCounts[r[4]] || 0) + 1; });
 }
-function copyTicker(text, rowEl, l) {
-  function done() {
-    rowEl.className = "crow copied";
-    var tk = rowEl.querySelector(".tk");
-    if (tk) tk.textContent = l.compCopied;
-    if (cCopiedTimer) clearTimeout(cCopiedTimer);
-    cCopiedTimer = setTimeout(function () { renderCompanies(); }, 900);
+/* "NVDA UW" -> "NVDA"; "700 HK" -> "700"; "601857 C1" -> "601857" */
+function normBase(bb) {
+  var s = String(bb || "").split(" ")[0].toUpperCase();
+  return /^[0-9]+$/.test(s) ? String(parseInt(s, 10)) : s;
+}
+/* yahoo ticker -> same normalized base */
+function normYahoo(t) {
+  var s = String(t || "").split(".")[0].toUpperCase();
+  return /^[0-9]+$/.test(s) ? String(parseInt(s, 10)) : s;
+}
+function focusMap() {
+  var f = (LIVE && LIVE.focus && LIVE.focus.picks) ? LIVE.focus : (SNAP.focus || {});
+  var map = {};
+  (f.picks || []).forEach(function (p) { map[normYahoo(p.ticker)] = p; });
+  return map;
+}
+function companyNews(row, pick) {
+  var src = (LIVE && LIVE.news && LIVE.news.items) ? LIVE.news : (SNAP.news || null);
+  var items = src ? src.items : [];
+  var keys = [];
+  var base = normBase(row[0]);
+  if (base.length >= 3) keys.push(base.toLowerCase());
+  var first = String(row[1] || "").split(/\s+/)[0];
+  if (first && first.length >= 4) keys.push(first.toLowerCase());
+  if (pick && pick.name) keys.push(pick.name);
+  if (pick && pick.theme) keys.push(pick.theme);
+  keys = keys.filter(function (k, i) { return k && keys.indexOf(k) === i; });
+  var seen = {}, out = [];
+  for (var i = 0; i < items.length && out.length < 8; i++) {
+    var t = String(items[i].title || "").toLowerCase();
+    for (var j = 0; j < keys.length; j++) {
+      if (t.indexOf(keys[j]) >= 0) {
+        var k = items[i].link || items[i].title;
+        if (!seen[k]) { seen[k] = 1; out.push(items[i]); }
+        break;
+      }
+    }
   }
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(done, function () { fallback(); });
-  } else fallback();
-  function fallback() {
+  return out;
+}
+function copyTicker(text, done) {
+  function fb() {
     var ta = document.createElement("textarea");
     ta.value = text; document.body.appendChild(ta); ta.select();
     try { document.execCommand("copy"); } catch (e) {}
     document.body.removeChild(ta); done();
   }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, fb);
+  } else fb();
 }
 function renderCompanies() {
   var l = L();
   compInit();
+  var fmap = focusMap();
   document.getElementById("tComp").textContent = l.comp;
   document.getElementById("mComp").textContent = (window.WLS ? window.WLS.count : 0) + " · " + l.compMeta;
   var inp = document.getElementById("cQ");
@@ -599,12 +656,58 @@ function renderCompanies() {
   });
   filtered.sort(function (a, b) { return b[2] - a[2]; });
   var CAP = 200;
-  document.getElementById("cList").innerHTML = filtered.slice(0, CAP).map(function (r, i) {
-    return '<div class="crow" data-t="' + esc(r[0]) + '"><span class="ex">' + (i + 1) + '</span><span class="tk">' + esc(r[0]) + '</span><span class="nm">' + esc(r[1]) + '</span><span class="ex">' + esc(r[5]) + '</span><span class="wt">' + (r[2] ? r[2].toFixed(2) + "%" : "--") + '</span><span class="pr">' + (r[3] != null ? r[3].toLocaleString("en-US") : "--") + "</span></div>";
-  }).join("") || '<div class="note">…</div>';
-  Array.prototype.forEach.call(document.getElementById("cList").children, function (b) {
-    b.onclick = function () { copyTicker(b.getAttribute("data-t"), b, l); };
+  var selIdx = -1;
+  if (cSel) {
+    for (var si = 0; si < Math.min(filtered.length, CAP); si++) {
+      if (normBase(filtered[si][0]) === cSel) { selIdx = si; break; }
+    }
+    if (selIdx < 0) cSel = null;
+  }
+  var htmls = filtered.slice(0, CAP).map(function (r, i) {
+    var pick = fmap[normBase(r[0])];
+    var star = pick ? '<span class="star">★</span>' : "";
+    var sig = pick ? '<span class="sig2">' + esc(LANG === "en" ? (pick.signalEn || pick.signal) : pick.signal) + "</span>" : "";
+    return '<div class="crow' + (pick ? " hot" : "") + (cSel && normBase(r[0]) === cSel ? " sel" : "") + '" data-t="' + esc(r[0]) + '"><span class="ex">' + (i + 1) + '</span><span class="tk">' + star + esc(r[0]) + sig + '</span><span class="nm">' + esc(r[1]) + '</span><span class="ex">' + esc(r[5]) + '</span><span class="wt">' + (r[2] ? r[2].toFixed(2) + "%" : "--") + '</span><span class="pr">' + (r[3] != null ? r[3].toLocaleString("en-US") : "--") + "</span></div>";
   });
+  if (selIdx >= 0) {
+    var row = filtered[selIdx];
+    var pk = fmap[cSel];
+    var news = companyNews(row, pk);
+    var sigCls = pk && ((pk.signal === "放量上攻" || pk.signal === "短线强势" || pk.signal === "趋势走强" || pk.signal === "接近新高") ? "hot" : (pk.signal === "短线回调" ? "warm" : "cool"));
+    var newsHtml = news.length ? news.map(function (n) {
+      var a = ago(n.pub || n.publishedAt);
+      return '<a class="cn" href="' + esc(n.link) + '" target="_blank" rel="noopener"><span class="t">' + esc(n.title) + '</span><span class="m">' + esc(n.src || n.sourceName || "") + (a ? " · " + esc(a) : "") + "</span></a>";
+    }).join("") : '<div class="nonews">' + esc(l.compNoNews) + "</div>";
+    htmls.splice(selIdx + 1, 0,
+      '<div class="cdetail"><div class="dh"><b>' + esc(row[1]) + '</b><span class="tk2">' + esc(row[0]) + '</span>' +
+      (pk ? '<span class="sigbadge">★ ' + esc(l.compFocus) + " · " + esc(LANG === "en" ? (pk.signalEn || pk.signal) : pk.signal) + "</span>" : "") +
+      '<span class="cp"><button id="cCopyBtn">' + esc(l.compCopy) + '</button></span></div>' +
+      '<div class="meta2"><span>' + esc(row[5]) + '</span><span>' + esc(l.compTh.w) + " " + (row[2] ? row[2].toFixed(2) + "%" : "--") + '</span><span>' + esc(l.compTh.p) + " " + (row[3] != null ? row[3].toLocaleString("en-US") : "--") + "</span>" +
+      (pk ? '<span class="' + (pk.changePct >= 0 ? "up" : "dn") + '">' + (pk.changePct >= 0 ? "+" : "") + pk.changePct.toFixed(2) + '%</span><span>' + esc(LANG === "en" ? (pk.themeEn || pk.theme) : pk.theme) + " · " + l.heat + " " + (pk.newsHeat || 0) + "</span>" : "") +
+      "</div>" +
+      (pk ? '<div class="why">' + esc(LANG === "en" ? (pk.rationaleEn || pk.rationale || "") : (pk.rationale || "")) + "</div>" : "") +
+      '<div class="nlabel">' + esc(l.compNews) + "</div>" + newsHtml + "</div>");
+  }
+  document.getElementById("cList").innerHTML = htmls.join("") || '<div class="note">…</div>';
+  Array.prototype.forEach.call(document.getElementById("cList").querySelectorAll(".crow"), function (b) {
+    b.onclick = function () {
+      var base = normBase(b.getAttribute("data-t"));
+      cSel = (cSel === base) ? null : base;
+      renderCompanies();
+      if (cSel) {
+        var det = document.querySelector(".cdetail");
+        if (det) det.scrollIntoView({ block: "nearest" });
+      }
+    };
+  });
+  var cp = document.getElementById("cCopyBtn");
+  if (cp) cp.onclick = function (e) {
+    e.stopPropagation();
+    var txt = "";
+    var crow = cp.closest(".cdetail").previousElementSibling;
+    if (crow) txt = crow.getAttribute("data-t");
+    copyTicker(txt, function () { cp.textContent = l.compCopied; setTimeout(renderCompanies, 800); });
+  };
   document.getElementById("cCount").textContent = filtered.length + " / " + rows.length;
   document.getElementById("cNote").textContent = (filtered.length > CAP ? "Top " + CAP + " by weight · " : "") + l.compNote;
 }
