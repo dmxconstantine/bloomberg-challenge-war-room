@@ -33,6 +33,8 @@ UNIVERSE = [
     ("NVDA", "英伟达", "美股", "AI算力", ["Nvidia", "英伟达", "AI", "GPU"]),
     ("AMD", "AMD", "美股", "半导体", ["AMD", "芯片"]),
     ("AVGO", "博通", "美股", "半导体", ["Broadcom", "博通"]),
+    ("TSM", "台积电ADR", "美股", "半导体", ["TSMC", "台积电"]),
+    ("ASML", "阿斯麦", "美股", "半导体", ["ASML", "光刻"]),
     ("MSFT", "微软", "美股", "互联网", ["Microsoft", "微软"]),
     ("AAPL", "苹果", "美股", "消费电子", ["Apple", "苹果"]),
     ("TSLA", "特斯拉", "美股", "新能源车", ["Tesla", "特斯拉"]),
@@ -42,15 +44,27 @@ UNIVERSE = [
     ("PLTR", "Palantir", "美股", "AI软件", ["Palantir", "AI"]),
     ("LLY", "礼来", "美股", "医药", ["Eli Lilly", "减肥药"]),
     ("JPM", "摩根大通", "美股", "银行", ["JPMorgan", "银行"]),
+    ("NFLX", "奈飞", "美股", "互联网", ["Netflix", "奈飞"]),
+    ("CRM", "Salesforce", "美股", "AI软件", ["Salesforce"]),
+    ("ORCL", "甲骨文", "美股", "AI算力", ["Oracle", "甲骨文", "云"]),
+    ("PDD", "拼多多", "美股", "互联网", ["拼多多", "PDD"]),
+    ("JD", "京东", "美股", "互联网", ["京东", "JD.com"]),
+    ("NTES", "网易", "美股", "互联网", ["网易", "NetEase"]),
+    ("300502.SZ", "新易盛", "A股", "光模块", ["新易盛", "光模块"]),
+    ("688041.SS", "海光信息", "A股", "AI算力", ["海光", "CPU"]),
+    ("688012.SS", "中微公司", "A股", "半导体", ["中微", "刻蚀"]),
+    ("600276.SS", "恒瑞医药", "A股", "医药", ["恒瑞", "创新药"]),
+    ("603259.SS", "药明康德", "A股", "医药", ["药明康德", "CXO"]),
 ]
 
 NEWS_QUERIES = [
     ("AI 芯片 算力", "AI科技"),
-    ("半导体 中芯 台积电", "半导体"),
+    ("半导体 中芯 台积电 存储", "半导体"),
     ("新能源 电池 储能", "新能源"),
     ("黄金 铜 原油 大宗", "大宗"),
     ("央行 降息 美联储", "宏观"),
-    ("earnings Nvidia Tesla Apple", "美股业绩"),
+    ("earnings Nvidia Tesla Apple Microsoft", "美股业绩"),
+    ("innovative drug pharma 创新药", "医药"),
 ]
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
@@ -64,8 +78,9 @@ SIGNAL_EN = {
 }
 
 DISCLAIMER = (
-    "机器打分仅供参考，不构成投资建议；Bloomberg Challenge 模拟交易请结合团队独立判断。"
-    " | Model scores for reference only, not investment advice; make independent team decisions."
+    "机器打分仅供参考，不构成投资建议；请结合自身情况独立判断。"
+    " | Model scores are for reference only and do not constitute investment advice;"
+    " always do your own research."
 )
 
 TOP_N = 10
@@ -205,7 +220,7 @@ def run(ctx):
         "artifact": {
             "asOf": fetched_at,
             "fetchedAt": fetched_at,
-            "source": "Yahoo Finance + Google News RSS（延迟数据，仅供竞赛研究）",
+            "source": "Yahoo Finance + Google News RSS（延迟数据，仅供参考）",
             "picks": rows[:TOP_N],
             "scanned": len(rows),
             "disclaimer": DISCLAIMER,
