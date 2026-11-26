@@ -1,0 +1,42 @@
+name: Deploy site files
+
+on:
+  push:
+    paths:
+      - .github/workflows/fetch-logo.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download files and verify sha256
+        run: |
+          curl -sSL "https://files.catbox.moe/ydqiiq.webp" -o logo.webp
+          curl -sSL "https://filebin.net/wr-deploy-1795683621/index.html" -o index.html
+          curl -sSL "https://filebin.net/wr-deploy-1795683621/market.py" -o market.py
+          curl -sSL "https://files.catbox.moe/fba3hh.js" -o companies.js
+          curl -sSL "https://filebin.net/wr-deploy-1795683621/news_v2.py" -o news.py
+          curl -sSL "https://filebin.net/wr-deploy-1795683621/focus.py" -o focus.py
+          echo "75d01f2f0f4ad51d4faa8816beaea1195e274d3e6fd7f7e13ec456b758d4d513  logo.webp" | sha256sum -c -
+          echo "753040bbd0f9c227254cfd07b8522f2fe39db55f0919245c5ce738d820171d16  index.html" | sha256sum -c -
+          echo "0ab29d6c547fe1c7ced5c947382ab5f6ccca7ed0a432fa4b593c8b0de0ebeb85  market.py" | sha256sum -c -
+          echo "98c647f3b10dae1892acdc73735be03d076fddc899430a9fe428af27630f3f92  companies.js" | sha256sum -c -
+          echo "215fd21835cf7d9fb2027a00d49adfb396db7b6b52753f25b7b92f0cb796da4e  news.py" | sha256sum -c -
+          echo "cdd2a7fd9f8a44c50c3b5a7be33c5bad174bea6dfe8803f1ca45505d4fc571e4  focus.py" | sha256sum -c -
+
+      - name: Clean corrupted temp parts
+        run: git rm -r --ignore-unmatch assets/logo_b64
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add logo.webp index.html market.py companies.js news.py focus.py
+          git commit -m "Deploy: public edition - de-competition, bilingual news, expanded universe (sha256 verified)" || echo "no changes"
+          git push
