@@ -1,8 +1,4 @@
-"""24h 财经新闻雷达：抓取 Google News 多主题双语 RSS，去重排序后产出新闻列表。
-
-来源扩充：中文 6 主题 + 英文 7 主题，每条新闻带 lang 标记，
-前端按界面语言过滤展示。
-"""
+"""24h 财经新闻雷达：抓取 Google News 多主题 RSS（中英双语源），去重排序后产出新闻列表。"""
 import datetime
 import email.utils
 import re
@@ -10,41 +6,38 @@ import xml.etree.ElementTree as ET
 
 import requests
 
-# (查询词, 主题, 语言)
 TOPICS = [
-    # 中文源
-    ("美联储 利率 降息", "宏观利率", "zh"),
-    ("AI 人工智能 芯片 英伟达", "AI科技", "zh"),
-    ("中美 关税 贸易", "贸易政策", "zh"),
-    ("原油 黄金 大宗商品", "大宗商品", "zh"),
-    ("A股 港股 行情", "中国市场", "zh"),
-    ("半导体 存储 涨价", "半导体", "zh"),
-    # 英文源（国际视野）
-    ("Federal Reserve interest rate decision", "宏观利率", "en"),
-    ("Nvidia AI chips semiconductor", "AI科技", "en"),
-    ("oil gold commodity prices OPEC", "大宗商品", "en"),
-    ("China stock market economy stimulus", "中国市场", "en"),
-    ("US stock market earnings Wall Street", "美股动态", "en"),
-    ("ECB Europe economy inflation", "欧洲经济", "en"),
-    ("Bitcoin cryptocurrency ETF", "加密资产", "en"),
+    ("美联储 利率 降息", "Federal Reserve interest rate", "宏观利率"),
+    ("AI 人工智能 芯片 英伟达", "AI chips Nvidia", "AI科技"),
+    ("中美 关税 贸易", "US China tariffs trade", "贸易政策"),
+    ("原油 黄金 大宗商品", "oil gold commodities prices", "大宗商品"),
+    ("A股 港股 今日 行情", "China stock market", "中国市场"),
+    ("美股 财报 行情", "US stock market earnings Fed", "美股动态"),
+    ("欧央行 欧元区 经济 利率", "ECB Europe economy rates", "欧洲经济"),
+    ("美股 科技股 七巨头 苹果 微软", "tech stocks Magnificent Seven Apple Microsoft", "美股科技"),
+    ("中东 地缘政治 冲突 伊朗 以色列", "Middle East geopolitics Iran Israel oil", "地缘局势"),
+    ("比特币 加密货币 数字货币", "Bitcoin crypto Ethereum market", "加密资产"),
+    ("财报 业绩 指引 盈利", "earnings results guidance profit", "财报季"),
+    ("日本央行 加息 日元 汇率", "Bank of Japan yen rate hike", "日本市场"),
+    ("半导体 存储 芯片 国产化", "semiconductor memory chips TSMC Samsung", "半导体"),
+    ("人民币 汇率 跨境 资本", "yuan renminbi FX capital flows", "汇率走势"),
 ]
 
-LOCALE = {
-    "zh": ("zh-CN", "CN", "CN:zh-Hans"),
-    "en": ("en-US", "US", "US:en"),
-}
-
 HEADERS = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
-PER_TOPIC = 8
-MAX_ITEMS = 60
+PER_TOPIC = 10
+MAX_ITEMS = 70
+
+FEEDS = {
+    "zh": "&hl=zh-CN&gl=CN&ceid=CN:zh-Hans",
+    "en": "&hl=en-US&gl=US&ceid=US:en",
+}
 
 
 def fetch_topic(query, topic, lang):
-    hl, gl, ceid = LOCALE.get(lang, LOCALE["zh"])
     url = (
         "https://news.google.com/rss/search?q="
         + requests.utils.quote(query)
-        + f"&hl={hl}&gl={gl}&ceid={ceid}"
+        + FEEDS[lang]
     )
     items = []
     try:
@@ -87,8 +80,9 @@ def fetch_topic(query, topic, lang):
 
 def run(ctx):
     all_items = []
-    for query, topic, lang in TOPICS:
-        all_items.extend(fetch_topic(query, topic, lang))
+    for zh_q, en_q, topic in TOPICS:
+        all_items.extend(fetch_topic(zh_q, topic, "zh"))
+        all_items.extend(fetch_topic(en_q, topic, "en"))
 
     # 按标题去重（保留最新一条）
     best = {}
@@ -102,8 +96,8 @@ def run(ctx):
     return {
         "artifact": {
             "fetchedAt": fetched_at,
-            "source": "Google News RSS · 双语源 CN+EN",
-            "topics": sorted({t[1] for t in TOPICS}),
+            "source": "Google News RSS",
+            "topics": [t[2] for t in TOPICS],
             "items": items,
         }
     }
